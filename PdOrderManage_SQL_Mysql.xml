@@ -1,0 +1,1098 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="User">
+
+    <typeAlias alias="egovMap" type = "egovframework.rte.psl.dataaccess.util.EgovMap"/> 
+    <typeAlias alias="orderDefVO"   type = "egovframework.hwvn.pd.order.service.PdOrderDefaultVO"/>
+    <typeAlias alias="orderVO"   type = "egovframework.hwvn.pd.order.service.PdOrderManageVO"/>
+    
+
+	<select id="pdOrderDAO.selectPdOrderList" resultClass="tadVO">
+       <![CDATA[
+           SELECT SEQ,
+			    UNIKEY ,
+			    ORIGIN_COM1 originCom1,
+			    ORIGIN_COM2 originCom2,
+			    CUSTOMER_PO customerPo,
+			    STYLE_NO styleNo,
+			    ORDER_NO orderNo,
+			    MODEL_GROUP modelGroup,
+			    MODEL_NAME modelName,
+			    PO_DOC_DATE poDocDate,
+			    ORDER_TYPE orderType,
+			    MODEL_GENDER modelGender,
+			    CUT_GET_DATE cutGetDate,
+			    SHIPPING_DATE shippingDate,
+			    INSTORE_SDATE instoreSdate,
+			    MODEL_DEST modelDest,
+			    CANCEL_WIDTH cancelWidth,
+			    MAKE_LINE makeLine,
+			    GRP grp,
+			    ORDER_CANCEL orderCancel,
+			    CANCEL_DATE cancelDate,
+			    CANCEL_REASON cancelReason,
+			    CANCEL_INCHARGE cancelIncharge,
+			    ORDER_QTY orderQty,
+			    ORDER_REMAINQTY orderRemainQty
+			FROM pd_orderlist
+        ]]>        
+    </select>
+	
+ <!-- 오더 리스트 메인 조회 SELECT / TABLE : pd_orderlist   -->    
+    <select id="pdOrderDAO.selectOrderListMain" parameterClass="orderDefVO" resultClass="orderVO">
+        <![CDATA[
+            SELECT
+                    UNIKEY			unikey,
+                    ORIGIN_COM1		originCom1,
+                    ORIGIN_COM2		originCom2,
+                    CUSTOMER_PO		customerPo,
+                    STYLE_NO		styleNo,
+                    ORDER_NO		orderNo,
+                    MODEL_GROUP		modelGroup,
+                    MODEL_NAME		modelName,
+                    PO_DOC_DATE		poDocDate,
+                    ORDER_TYPE		orderType,
+                    MODEL_GENDER	modelGender,
+                    CUT_GET_DATE	cutGetDate,
+                    SHIPPING_DATE	shippingDate,
+                    INSTORE_SDATE	instoreSdate,
+                    MODEL_DEST		modelDest,
+                    MAKE_LINE		makeLine,
+                    GRP				grp,
+                    ORDER_QTY		orderQty,
+                    ORDER_REMAINQTY	orderRemainQty,
+                    ORDER_DETAIL	orderDetail             
+            FROM    PD_ORDERLIST
+            WHERE	ORDER_CANCEL IS NULL
+        ]]>
+        <dynamic>
+        	<isNotNull property="originCom2">
+	        	<isNotEmpty property="originCom2">
+	        		and ORIGIN_COM2 = #originCom2#
+	        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="orderNo">
+	        	<isNotEmpty property="orderNo">
+	        		and (ORDER_NO like CONCAT(#orderNo#,'%') OR ORDER_NO like CONCAT('%',#orderNo#) OR MODEL_GROUP like CONCAT(#orderNo#,'%') OR MODEL_GROUP like CONCAT('%',#orderNo#,'%')) 
+	        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="fromDate">
+	        	<isNotEmpty property="fromDate">
+	        		and CREATE_DATE &gt;= #fromDate#
+	        		and CREATE_DATE &lt;= #toDate#
+	        	</isNotEmpty>
+        	</isNotNull>
+        </dynamic>
+        <![CDATA[
+            ORDER BY SHIPPING_DATE, CREATE_DATE desc
+   
+            LIMIT  #recordCountPerPage# OFFSET #firstIndex#
+        ]]>
+    </select>
+    
+ <!-- 오더 리스트 메인 조회 count SELECT / TABLE : pd_orderlist   -->     
+    <select id="pdOrderDAO.selectOrderListMainCount" parameterClass="orderDefVO" resultClass="int">
+        <![CDATA[
+            SELECT COUNT(*)   totCnt
+			FROM(SELECT
+		                    UNIKEY			unikey,
+		                    ORIGIN_COM1		originCom1,
+		                    ORIGIN_COM2		originCom2,
+		                    CUSTOMER_PO		customerPo,
+		                    STYLE_NO		styleNo,
+		                    ORDER_NO		orderNo,
+		                    MODEL_GROUP		modelGroup,
+		                    MODEL_NAME		modelName,
+		                    PO_DOC_DATE		poDocDate,
+		                    ORDER_TYPE		orderType,
+		                    MODEL_GENDER	modelGender,
+		                    CUT_GET_DATE	cutGetDate,
+		                    SHIPPING_DATE	shippingDate,
+		                    INSTORE_SDATE	instoreSdate,
+		                    MODEL_DEST		modelDest,
+		                    MAKE_LINE		makeLine,
+		                    GRP				grp,
+		                    ORDER_QTY		orderQty                    
+		            FROM    PD_ORDERLIST
+		            WHERE	ORDER_CANCEL IS NULL
+		]]>
+        <dynamic>
+        	<isNotNull property="originCom2">
+	        	<isNotEmpty property="originCom2">
+	        		and ORIGIN_COM2 = #originCom2#
+	        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="orderNo">
+	        	<isNotEmpty property="orderNo">
+	        		and (ORDER_NO like CONCAT(#orderNo#,'%') OR ORDER_NO like CONCAT('%',#orderNo#) OR MODEL_GROUP like CONCAT(#orderNo#,'%') OR MODEL_GROUP like CONCAT('%',#orderNo#,'%')) 
+	        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="fromDate">
+	        	<isNotEmpty property="fromDate">
+	        		and CREATE_DATE &gt;= #fromDate#
+	        		and CREATE_DATE &lt;= #toDate#
+	        	</isNotEmpty>
+        	</isNotNull>
+        </dynamic>
+        <![CDATA[
+		           ) AS cnt
+        ]]>
+    </select>
+    
+ <!-- 오더 리스트의 특정 한 order 정보만 조회 SELECT / TABLE : pd_orderlist   -->    
+    <select id="pdOrderDAO.selectOneOrderMain" parameterClass="String" resultClass="orderVO">
+        <![CDATA[
+            SELECT	
+            		SEQ				seq,
+                    UNIKEY			unikey,
+                    ORIGIN_COM1		originCom1,
+                    ORIGIN_COM2		originCom2,
+                    CUSTOMER_PO		customerPo,
+                    STYLE_NO		styleNo,
+                    ORDER_NO		orderNo,
+                    MODEL_GROUP		modelGroup,
+                    MODEL_NAME		modelName,
+                    PO_DOC_DATE		poDocDate,
+                    ORDER_TYPE		orderType,
+                    MODEL_GENDER	modelGender,
+                    CUT_GET_DATE	cutGetDate,
+                    SHIPPING_DATE	shippingDate,
+                    INSTORE_SDATE	instoreSdate,
+                    MODEL_DEST		modelDest,
+                    MAKE_LINE		makeLine,
+                    GRP				grp,
+                    ORDER_QTY		orderQty                    
+            FROM    PD_ORDERLIST
+            WHERE   UNIKEY = #unikey#
+        ]]>
+    </select>    
+    
+ <!-- 오더 리스트 상세 조회 SELECT / TABLE : pd_orderdetail   -->    
+    <select id="pdOrderDAO.selectOrderListDetail" parameterClass="orderDefVO" resultClass="orderVO">
+        <![CDATA[
+            SELECT
+                    UNIKEY			unikey,
+                    ORIGIN_COM1		originCom1,
+                    ORIGIN_COM2		originCom2,
+                    CUSTOMER_PO		customerPo,
+                    STYLE_NO		styleNo,
+                    ORDER_NO		orderNo,
+                    MODEL_GROUP		modelGroup,
+                    MODEL_NAME		modelName,
+                    PO_DOC_DATE		poDocDate,
+                    ORDER_TYPE		orderType,
+                    MODEL_GENDER	modelGender,                    
+                    ORDER_QTY		orderQty,
+                    MODEL_DEST		modelDest,
+                    S1				s1,
+                    S1T				s1t,
+                    S2				s2,
+                    S2T				s2t,
+                    S3				s3,
+                    S3T				s3t,
+                    S4				s4,
+                    S4T				s4t,
+                    S5				s5,
+                    S5T				s5t,
+                    S6				s6,
+                    S6T				s6t,
+                    S7				s7,
+                    S7T				s7t,
+                    S8				s8,
+                    S8T				s8t,
+                    S9				s9,
+                    S9T				s9t,
+                    S10				s10,
+                    S10T			s10t,
+                    S11				s11,
+                    S11T			s11t,
+                    S12				s12,
+                    S12T			s12t,	
+                    S13				s13,
+                    S13T			s13t,
+                    S14				s14,
+                    S14T			s14t,
+                    S15				s15,
+                    S15T			s15t,
+                    S16				s16,
+                    S16T			s16t,
+                    S17				s17,
+                    S17T			s17t,
+                    S18				s18
+            FROM    PD_ORDERDETAIL
+            WHERE   UNIKEY = #unikey#
+        ]]>
+        <dynamic>
+        	<isNotNull property="fromDate">
+	        	<isNotEmpty property="fromDate">
+	        		and CREATE_DATE &gt;= #fromDate#
+	        		and CREATE_DATE &lt;= #toDate#
+	        	</isNotEmpty>
+        	</isNotNull>
+        </dynamic>
+        <![CDATA[            
+            LIMIT  #recordCountPerPage# OFFSET #firstIndex#
+        ]]>
+    </select>
+    
+ <!-- 오더 리스트 상세 조회 count SELECT / TABLE : pd_orderdetail   -->     
+    <select id="pdOrderDAO.selectOrderListDetailCount" parameterClass="orderDefVO" resultClass="int">
+        <![CDATA[
+            SELECT COUNT(*)   totCnt
+			FROM(SELECT
+		                    UNIKEY			unikey,
+		                    ORIGIN_COM1		originCom1,
+		                    ORIGIN_COM2		originCom2,
+		                    CUSTOMER_PO		customerPo,
+		                    STYLE_NO		styleNo,
+		                    ORDER_NO		orderNo,
+		                    MODEL_GROUP		modelGroup,
+		                    MODEL_NAME		modelName,
+		                    PO_DOC_DATE		poDocDate,
+		                    ORDER_TYPE		orderType,
+		                    MODEL_GENDER	modelGender,		                    
+		                    ORDER_QTY		orderQty,
+		                    MODEL_DEST		modelDest,
+		                    S1				s1,
+		                    S1T				s1t,
+		                    S2				s2,
+		                    S2T				s2t,
+		                    S3				s3,
+		                    S3T				s3t,
+		                    S4				s4,
+		                    S4T				s4t,
+		                    S5				s5,
+		                    S5T				s5t,
+		                    S6				s6,
+		                    S6T				s6t,
+		                    S7				s7,
+		                    S7T				s7t,
+		                    S8				s8,
+		                    S8T				s8t,
+		                    S9				s9,
+		                    S9T				s9t,
+		                    S10				s10,
+		                    S10T			s10t,
+		                    S11				s11,
+		                    S11T			s11t,
+		                    S12				s12,
+		                    S12T			s12t,	
+		                    S13				s13,
+		                    S13T			s13t,
+		                    S14				s14,
+		                    S14T			s14t,
+		                    S15				s15,
+		                    S15T			s15t,
+		                    S16				s16,
+		                    S16T			s16t,
+		                    S17				s17,
+		                    S17T			s17t,
+		                    S18				s18
+		            FROM    PD_ORDERDETAIL
+		            WHERE   UNIKEY = #unikey#
+		]]>
+        <dynamic>
+        	<isNotNull property="fromDate">
+	        	<isNotEmpty property="fromDate">
+	        		and CREATE_DATE &gt;= #fromDate#
+	        		and CREATE_DATE &lt;= #toDate#
+	        	</isNotEmpty>
+        	</isNotNull>
+        </dynamic>
+        <![CDATA[
+		           ) AS cnt
+        ]]>
+    </select>
+   
+    
+ <!-- 오더 리스트 개별 등록 INSERT / TABLE : pd_orderlist  -->     
+    <insert id="pdOrderDAO.insertOneOrderList" parameterClass="orderVO" >
+        <![CDATA[    
+			INSERT INTO PD_ORDERLIST(
+				UNIKEY,
+				ORIGIN_COM1,
+				ORIGIN_COM2,
+				CUSTOMER_PO,
+				STYLE_NO,
+				ORDER_NO,
+				MODEL_GROUP,
+				MODEL_NAME,
+				PO_DOC_DATE,
+				ORDER_TYPE,
+				MODEL_GENDER,
+				CUT_GET_DATE,
+				SHIPPING_DATE,
+				INSTORE_SDATE,
+				MODEL_DEST,
+				MAKE_LINE,
+				GRP,
+				ORDER_QTY,
+				ORDER_REMAINQTY,
+				ORDER_DETAIL,
+				CREATE_DATE,
+				IN_CHARGE
+			)
+			VALUES(
+				#unikey#,
+				#originCom1#,
+				#originCom2#,
+				#customerPo#,
+				#styleNo#,
+				#orderNo#,
+				#modelGroup#,
+				#modelName#,
+				#poDocDate#,
+				#orderType#,
+				#modelGender#,
+				#cutGetDate#,
+				#shippingDate#,
+				#instoreSdate#,
+				#modelDest#,
+				#makeLine#,
+				#grp#,
+				#orderQty#,
+				#orderQty#,
+				'N',
+				date_format(now(), '%Y%m%d'),
+				#inCharge#
+			)
+		]]>
+    </insert> 
+    
+ <!-- SET 제품 입고 여부 체크 count SELECT / TABLE : pd_delivery   -->     
+    <select id="pdOrderDAO.selectCheckItemExist" parameterClass="orderVO" resultClass="int">
+        <![CDATA[
+        	SELECT COUNT(CUR_STATE_BARCODE) cnt
+        		FROM PD_DELIVERY
+        		WHERE UNIKEY = #unikey#
+        ]]>
+    </select>  
+    
+ <!-- 오더 수량 SELECT / TABLE : pd_orderlist => 오더 상세 입력(수정)시, 계산된 총량과 이미 입력된 오더 수량이 다른지 체크하기 위한 용도  -->     
+    <select id="pdOrderDAO.selectTotalOrderQty" parameterClass="orderVO" resultClass="String">
+        <![CDATA[
+        	SELECT ORDER_QTY	orderQty
+        		FROM PD_ORDERLIST
+        		WHERE UNIKEY = #unikey#
+        ]]>
+    </select> 
+         
+ <!-- 오더 상세 리스트 개별 수정 UPDATE / TABLE : pd_orderdetail  -->     
+    <update id="pdOrderDAO.updateOneOrderDetail" parameterClass="orderVO" >
+        <![CDATA[   
+        	UPDATE PD_ORDERDETAIL
+        		SET S1	 = #s1#,
+                    S1T	 = #s1t#,
+                    S2	 = #s2#,
+        			S2T	 = #s2t#,
+                    S3	 = #s3#,
+                    S3T	 = #s3t#,
+                    S4	 = #s4#,
+                    S4T	 = #s4t#,
+                    S5	 = #s5#,
+                    S5T	 = #s5t#,
+                    S6	 = #s6#,
+                    S6T	 = #s6t#,
+                    S7	 = #s7#,
+                    S7T	 = #s7t#,
+                    S8	 = #s8#,
+                    S8T	 = #s8t#,
+                    S9	 = #s9#,
+                    S9T	 = #s9t#,
+                    S10	 = #s10#,
+                    S10T = #s10t#,
+                    S11	 = #s11#,
+                    S11T = #s11t#,
+                    S12	 = #s12#,
+                    S12T = #s12t#,	
+                    S13	 = #s13#,
+                    S13T = #s13t#,
+                    S14	 = #s14#,
+                    S14T = #s14t#,
+                    S15	 = #s15#,
+                    S15T = #s15t#,
+                    S16	 = #s16#,
+                    S16T = #s16t#,
+                    S17	 = #s17#,
+                    S17T = #s17t#,
+                    S18	 = #s18#,
+                    ORDER_QTY = #orderQty#,
+                    ORDER_DESCRIPT = #orderDescript#,
+					MODIFY_DATE = date_format(now(), '%Y%m%d'), 
+					IN_CHARGE = #inCharge#
+				WHERE UNIKEY = #unikey#
+        ]]>
+    </update>          
+    
+    <update id="pdOrderDAO.updateOneOrderDetail_mirror" parameterClass="orderVO" >
+        <![CDATA[   
+        	UPDATE PD_ORDERDETAIL_MIRROR
+        		SET S1	 = #s1#,
+                    S1T	 = #s1t#,
+                    S2	 = #s2#,
+        			S2T	 = #s2t#,
+                    S3	 = #s3#,
+                    S3T	 = #s3t#,
+                    S4	 = #s4#,
+                    S4T	 = #s4t#,
+                    S5	 = #s5#,
+                    S5T	 = #s5t#,
+                    S6	 = #s6#,
+                    S6T	 = #s6t#,
+                    S7	 = #s7#,
+                    S7T	 = #s7t#,
+                    S8	 = #s8#,
+                    S8T	 = #s8t#,
+                    S9	 = #s9#,
+                    S9T	 = #s9t#,
+                    S10	 = #s10#,
+                    S10T = #s10t#,
+                    S11	 = #s11#,
+                    S11T = #s11t#,
+                    S12	 = #s12#,
+                    S12T = #s12t#,	
+                    S13	 = #s13#,
+                    S13T = #s13t#,
+                    S14	 = #s14#,
+                    S14T = #s14t#,
+                    S15	 = #s15#,
+                    S15T = #s15t#,
+                    S16	 = #s16#,
+                    S16T = #s16t#,
+                    S17	 = #s17#,
+                    S17T = #s17t#,
+                    S18	 = #s18#,
+                    ORDER_QTY = #orderQty#,
+                    ORDER_DESCRIPT = #orderDescript#,
+					MODIFY_DATE = date_format(now(), '%Y%m%d'), 
+					IN_CHARGE = #inCharge#
+				WHERE UNIKEY = #unikey#
+        ]]>
+    </update>          
+         
+  <!-- 모델 리스트 depth별 정보 select / TABLE : pd_modelregister  -->            
+	<select id="pdOrderDAO.selectEtcModelListDesc" parameterClass="orderDefVO" resultClass="orderVO">    
+		<![CDATA[
+			SELECT 
+			   DEPTH_CODE  depthCode,
+			   REGISTER_NAME registerName,
+			   TAIL tail,
+			   TAIL_DEPEND1 tailDepend1,
+			   TAIL_DEPEND2 tailDepend2,
+			   TAIL_DEPEND3 tailDepend3,
+			   TAIL_DEPEND4 tailDepend4
+			FROM
+			    pd_modelregister
+			    where DEPTH_CODE = #depthCode#
+		]]>	    
+			    
+		    <isNotNull property="tail">
+        	<isNotEmpty property="tail">
+        		and TAIL = #tail#
+        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="tailDepend1">
+        	<isNotEmpty property="tailDepend1">
+        		and TAIL_DEPEND1 =  #tailDepend1#
+        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="tailDepend2">
+        	<isNotEmpty property="tailDepend2">
+        		and TAIL_DEPEND2 =  #tailDepend2#
+        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="tailDepend3">
+        	<isNotEmpty property="tailDepend3">
+        		and TAIL_DEPEND3 =  #tailDepend3#
+        	</isNotEmpty>
+        	</isNotNull>
+        	
+        	<isNotNull property="tailDepend4">
+        	<isNotEmpty property="tailDepend4">
+        		and TAIL_DEPEND4 =  #tailDepend4#
+        	</isNotEmpty>
+        	</isNotNull>
+        	
+        <![CDATA[	
+        	and del_flag = 'Y'
+		]]>
+	</select>   
+	
+ <!-- 모델 성별(Gender) 정보 select / TABLE : pd_standardvalue  -->            
+	<select id="pdOrderDAO.selectModelGenderDesc" parameterClass="orderDefVO" resultClass="orderVO">    
+		<![CDATA[
+			SELECT 
+			  	S_DETAIL		sDetail
+			FROM
+			    pd_standardvalue
+			WHERE
+				S_STATE = #sState#
+		]]>	    
+	</select> 
+	
+ <!-- 모델의 신발 폭(width) 정보 select / TABLE : pd_standardvalue  -->            
+	<select id="pdOrderDAO.selectWidthDesc" parameterClass="orderDefVO" resultClass="orderVO">    
+		<![CDATA[
+			SELECT 
+			  	S_DETAIL		sDetail
+			FROM
+			    pd_standardvalue
+			WHERE
+				S_STATE = #sState#
+		]]>	    
+	</select> 	
+         
+ <!-- 오더 상세 등록 저장 UPDATE & INSERT PROCEDURE / PROCEDURE:  pdproc_addnewitem  -->     
+ 	<procedure id="pdOrderDAO.saveOrderDetailInfo" parameterClass="orderVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_orderdetailadd(#unikey#,#originCom1#,#originCom2#,#customerPo#,#styleNo#,#orderNo#,#modelGroup#,#modelName#,#poDocDate#,#orderType#,#modelGender#,#orderQty#,#modelDest#,#orderDescript#,#inCharge#,#s1#,#s1t#,#s2#,#s2t#,#s3#,#s3t#,#s4#,#s4t#,#s5#,#s5t#,#s6#,#s6t#,#s7#,#s7t#,#s8#,#s8t#,#s9#,#s9t#,#s10#,#s10t#,#s11#,#s11t#,#s12#,#s12t#,#s13#,#s13t#,#s14#,#s14t#,#s15#,#s15t#,#s16#,#s16t#,#s17#,#s17t#,#s18#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure>
+ 	
+ <!-- 오더 메인 수정 UPDATE PROCEDURE / PROCEDURE:  pdproc_modifyorderinfo  -->     
+ 	<procedure id="pdOrderDAO.updateOneOrderList" parameterClass="orderVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_modifyorderinfo(#unikey#,#modelName#,#poDocDate#,#customerPo#,#orderType#,#modelGender#,#cutGetDate#,#shippingDate#,#instoreSdate#,#modelDest#,#makeLine#,#grp#,#orderQty#,#inCharge#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure> 	
+ 	
+ <!-- 오더 취소(cancel) UPDATE PROCEDURE / PROCEDURE:  pdproc_ordercancel  -->     
+ 	<procedure id="pdOrderDAO.updateOrderCancel" parameterClass="orderVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_ordercancel(#unikey#,#cancelReason#,#inCharge#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure>  	
+ 	
+ <!-- 오더 리스트 상세 하나만 조회 SELECT / TABLE : pd_orderdetail   -->    
+    <select id="pdOrderDAO.selectOneOrderDetail" parameterClass="orderDefVO" resultClass="orderVO">
+        <![CDATA[
+            SELECT
+                    UNIKEY			unikey,
+                    ORIGIN_COM1		originCom1,
+                    ORIGIN_COM2		originCom2,
+                    CUSTOMER_PO		customerPo,
+                    STYLE_NO		styleNo,
+                    ORDER_NO		orderNo,
+                    MODEL_GROUP		modelGroup,
+                    MODEL_NAME		modelName,
+                    PO_DOC_DATE		poDocDate,
+                    ORDER_TYPE		orderType,
+                    MODEL_GENDER	modelGender,                    
+                    ORDER_QTY		orderQty,
+                    MODEL_DEST		modelDest,
+                    ORDER_DESCRIPT	orderDescript,
+                    S1				s1,
+                    S1T				s1t,
+                    S2				s2,
+                    S2T				s2t,
+                    S3				s3,
+                    S3T				s3t,
+                    S4				s4,
+                    S4T				s4t,
+                    S5				s5,
+                    S5T				s5t,
+                    S6				s6,
+                    S6T				s6t,
+                    S7				s7,
+                    S7T				s7t,
+                    S8				s8,
+                    S8T				s8t,
+                    S9				s9,
+                    S9T				s9t,
+                    S10				s10,
+                    S10T			s10t,
+                    S11				s11,
+                    S11T			s11t,
+                    S12				s12,
+                    S12T			s12t,	
+                    S13				s13,
+                    S13T			s13t,
+                    S14				s14,
+                    S14T			s14t,
+                    S15				s15,
+                    S15T			s15t,
+                    S16				s16,
+                    S16T			s16t,
+                    S17				s17,
+                    S17T			s17t,
+                    S18				s18
+            FROM    PD_ORDERDETAIL
+            WHERE	UNIKEY = #unikey#
+        ]]>
+    </select> 	
+ 	
+<!-- 모델 리스트에서 특정 tail의 Component 리스트만 조회 SELECT / TABLE : pd_modelregister   -->    
+    <select id="pdOrderDAO.selectModelComponent" parameterClass="orderDefVO" resultClass="orderVO">
+        <![CDATA[ 	         
+         	SELECT 
+         			REGISTER_NAME		registerName
+         	FROM
+         			PD_MODELREGISTER
+         	WHERE
+         			DEPTH_CODE = #depthCode#
+         		AND TAIL_DEPEND3 = #tailDepend3#
+         		AND	DEL_FLAG = 'Y'
+        ]]>
+    </select>
+    
+<!-- 모델 리스트에서 특정 Component의 tail만 조회 SELECT / TABLE : pd_modelregister   -->    
+    <select id="pdOrderDAO.selectModelGroupTail" parameterClass="orderDefVO" resultClass="String">
+        <![CDATA[ 	         
+         	SELECT 
+         			TAIL		tail
+         	FROM
+         			PD_MODELREGISTER a
+         	WHERE
+         		CONCAT(REGISTER_NAME,
+               (select REGISTER_NAME from PD_MODELREGISTER where tail = a.TAIL_DEPEND1),
+               (select REGISTER_NAME from PD_MODELREGISTER where tail = a.TAIL_DEPEND2)) = #modelGroup#			   
+			  AND	DEL_FLAG = 'Y'
+        ]]>
+    </select>    
+    
+ <!-- 재단물 입고 저장 처리 INSERT PROCEDURE / PROCEDURE:  pdproc_addnewroll  -->     
+ 	<procedure id="pdOrderDAO.insertNewAddRoll" parameterClass="orderVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_addnewroll(#unikey#,#originCom2#,#styleNo#,#orderNo#,#modelGroup#,#component#,#modelName#,#modelGender#,#stateCode#,#receiveDate#,#receiveRollMeter#,#defectRollMeter#,#defectReason#,#inCharge#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure>     
+    
+ <!-- 재단물 Roll 입고 등록 시, 임시 테이블에 저장 처리 PROCEDURE / PROCEDURE:  pdproc_savetemproll  -->     
+ 	<procedure id="pdOrderDAO.insertTempRollStateDesc" parameterClass="orderDefVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_savetemproll(#stateCode#,#originCom2#,#rm1#,#rq1#,#rs1#,#rm2#,#rq2#,#rs2#,#rm3#,#rq3#,#rs3#,#rm4#,#rq4#,#rs4#,#rm5#,#rq5#,#rs5#,#inCharge#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure> 	
+ 	    
+<!-- 바코드 key 생성을 위해, company2 값과 매칭되는 회사 이니셜 조회 SELECT / TABLE : pd_standardvalue   -->    
+    <select id="pdOrderDAO.selectStandardsDetail" parameterClass="String" resultClass="String">
+        <![CDATA[ 	         
+         	SELECT 
+         			S_DETAIL		sDetail
+         	FROM
+         			PD_STANDARDVALUE
+         	WHERE
+         			S_DESCRIPT = #sDescript# AND S_CODE = '02'
+        ]]>
+    </select>
+    
+    <delete id="pdOrderDAO.deleteAddList" parameterClass="orderDefVO" >
+		delete from pd_orderlist where seq = #seq# and order_no =  #orderNo#
+	</delete> 	  	    
+    
+<!-- orderNO값을 받아 오더리스트의 각각의 값들을 들고 온다. -->	
+	<select id="pdOrderDAO.selectOneOrderInfo" parameterClass="orderDefVO" resultClass="orderVO">
+        <![CDATA[
+            SELECT SEQ seq,
+			    UNIKEY unikey,
+			    ORIGIN_COM1 originCom1,
+			    ORIGIN_COM2 originCom2,
+			    CUSTOMER_PO customerPo,
+			    STYLE_NO styleNo,
+			    ORDER_NO orderNo,
+			    MODEL_GROUP modelGroup,
+			    MODEL_NAME modelName,
+			    PO_DOC_DATE poDocDate,
+			    ORDER_TYPE orderType,
+			    MODEL_GENDER modelGender,
+			    CUT_GET_DATE cutGetDate,
+			    SHIPPING_DATE shippingDate,
+			    INSTORE_SDATE instoreSdate,
+			    MODEL_DEST modelDest,
+			    CANCEL_WIDTH cancelWidth,
+			    MAKE_LINE makeLine,
+			    GRP grp,
+			    ORDER_CANCEL orderCancel,
+			    CANCEL_DATE cancelDate,
+			    CANCEL_REASON cancelReason,
+			    CANCEL_INCHARGE cancelIncharge,
+			    ORDER_QTY orderQty,
+			    ORDER_REMAINQTY orderRemainqty,
+			    ORDER_DETAIL orderDetail,
+			    CREATE_DATE createDate,
+			    IN_CHARGE inCharge,
+			    NOTE note
+			FROM pd_orderlist
+			where  ORDER_NO = #orderNo#
+			  and  ORDER_CANCEL is null
+        ]]>
+    </select>     
+ 	    
+    <insert id="pdOrderDAO.insertOrderList" parameterClass="orderVO">
+    INSERT INTO PD_ORDERLIST
+		(
+		UNIKEY,
+		ORIGIN_COM1,
+		ORIGIN_COM2,
+		CUSTOMER_PO,
+		STYLE_NO,
+		ORDER_NO,
+		MODEL_GROUP,
+		MODEL_NAME,
+		PO_DOC_DATE,
+		ORDER_TYPE,
+		MODEL_GENDER,
+		CUT_GET_DATE,
+		SHIPPING_DATE,
+		INSTORE_SDATE,
+		MODEL_DEST,
+		MAKE_LINE,
+		GRP,
+		ORDER_CANCEL,
+		ORDER_QTY,
+		ORDER_REMAINQTY,
+		ORDER_DETAIL,
+		CREATE_DATE,
+		MODIFY_DATE,
+		IN_CHARGE,
+		NOTE,
+		count,
+  		SPLIT_LINETACHLO,
+	    ORD_BURN,
+	    UPPER_REWORKING,
+	    ETA_UPPER,
+	    ETA_OS,
+	    CUT_DATE,
+	    RGAC,
+	    LOT_CMPLTE,
+	    DFF_DATE,
+	    WIDTH,
+	    VENDOR
+	    )
+		VALUES
+		(
+		CONCAT(#originCom2#,#styleNo#,#orderNo#),
+		#originCom1#,
+		#originCom2#,
+		#customerPo#,
+		#styleNo#,
+		#orderNo#,
+		#modelGroup#,
+		#modelName#,
+		#poDocDate#,
+		#orderType#,
+		#modelGender#,
+		#cutGetDate#,
+		#shippingDate#,
+		#instoreSdate#,
+		#modelDest#,
+		#makeLine#,
+		#grp#,
+		#orderCancel#,
+		#orderQty#,
+		#orderQty#,
+		'Y',
+		date_format(now(), '%Y%m%d'),
+		date_format(now(), '%Y%m%d'),
+		#inCharge#,
+		#note#,
+		#count#,
+		#splitLinetachlo#,
+		#ordBurn#,
+		#upperReworking#,
+		#etaUpper#,
+		#etaOs#,
+		#cutDate#,
+		#rgac#,
+		#lotCmplte#,
+		#dffDate#,
+		#width#,
+		#vendor#
+		)
+    </insert>
+    
+    
+    <insert id="pdOrderDAO.insertOrderDetail" parameterClass="orderVO">
+    INSERT INTO pd_orderdetail
+		(
+		UNIKEY,
+		ORIGIN_COM1,
+		ORIGIN_COM2,
+		CUSTOMER_PO,
+		STYLE_NO,
+		ORDER_NO,
+		MODEL_GROUP,
+		MODEL_NAME,
+		PO_DOC_DATE,
+		ORDER_TYPE,
+		MODEL_GENDER,
+		S1,
+        S1T,
+        S2,
+		S2T,
+		S3,
+		S3T,
+		S4,
+		S4T,
+		S5,
+		S5T,
+		S6,
+		S6T,
+		S7,
+		S7T,
+		S8,
+		S8T,
+		S9,
+		S9T,
+		S10,
+		S10T,
+		S11,
+		S11T,
+		S12,
+		S12T,
+		S13,
+		S13T,
+		S14,
+		S14T,
+		S15,
+		S15T,
+		S16,
+		S16T,
+		S17,
+		S17T,
+		S18,
+		ORDER_QTY,
+		MODEL_DEST,
+		CREATE_DATE,
+		MODIFY_DATE,
+		IN_CHARGE,
+		NOTE)
+		VALUES
+		(
+		concat(#originCom2#,#styleNo#,#orderNo#),
+		#originCom1#,
+		#originCom2#,
+		#customerPo#,
+		#styleNo#,
+		#orderNo#,
+		#modelGroup#,
+		#modelName#,
+		#poDocDate#,
+		#orderType#,
+		#modelGender#,
+		#s1#,
+		#s1t#,
+		#s2#,
+		#s2t#,
+		#s3#,
+		#s3t#,
+		#s4#,
+		#s4t#,
+		#s5#,
+		#s5t#,
+		#s6#,
+		#s6t#,
+		#s7#,
+		#s7t#,
+		#s8#,
+		#s8t#,
+		#s9#,
+		#s9t#,
+		#s10#,
+		#s10t#,
+		#s11#,
+		#s11t#,
+		#s12#,
+		#s12t#,
+		#s13#,
+		#s13t#,
+		#s14#,
+		#s14t#,
+		#s15#,
+		#s15t#,
+		#s16#,
+		#s16t#,
+		#s17#,
+		#s17t#,
+		#s18#,
+		#orderQty#,
+		#modelDest#,		
+		date_format(now(), '%Y%m%d'),
+		date_format(now(), '%Y%m%d'),
+		#inCharge#,
+		#note#)
+
+    </insert>
+    
+    
+    <insert id="pdOrderDAO.insertOrderDetail_mirror" parameterClass="orderVO">
+    INSERT INTO pd_orderdetail_mirror
+		(
+		UNIKEY,
+		ORIGIN_COM1,
+		ORIGIN_COM2,
+		CUSTOMER_PO,
+		STYLE_NO,
+		ORDER_NO,
+		MODEL_GROUP,
+		MODEL_NAME,
+		PO_DOC_DATE,
+		ORDER_TYPE,
+		MODEL_GENDER,
+		S1,
+        S1T,
+        S2,
+		S2T,
+		S3,
+		S3T,
+		S4,
+		S4T,
+		S5,
+		S5T,
+		S6,
+		S6T,
+		S7,
+		S7T,
+		S8,
+		S8T,
+		S9,
+		S9T,
+		S10,
+		S10T,
+		S11,
+		S11T,
+		S12,
+		S12T,
+		S13,
+		S13T,
+		S14,
+		S14T,
+		S15,
+		S15T,
+		S16,
+		S16T,
+		S17,
+		S17T,
+		S18,
+		ORDER_QTY,
+		MODEL_DEST,
+		CREATE_DATE,
+		MODIFY_DATE,
+		IN_CHARGE,
+		NOTE)
+		VALUES
+		(
+		concat(#originCom2#,#styleNo#,#orderNo#),
+		#originCom1#,
+		#originCom2#,
+		#customerPo#,
+		#styleNo#,
+		#orderNo#,
+		#modelGroup#,
+		#modelName#,
+		#poDocDate#,
+		#orderType#,
+		#modelGender#,
+		#s1#,
+		#s1t#,
+		#s2#,
+		#s2t#,
+		#s3#,
+		#s3t#,
+		#s4#,
+		#s4t#,
+		#s5#,
+		#s5t#,
+		#s6#,
+		#s6t#,
+		#s7#,
+		#s7t#,
+		#s8#,
+		#s8t#,
+		#s9#,
+		#s9t#,
+		#s10#,
+		#s10t#,
+		#s11#,
+		#s11t#,
+		#s12#,
+		#s12t#,
+		#s13#,
+		#s13t#,
+		#s14#,
+		#s14t#,
+		#s15#,
+		#s15t#,
+		#s16#,
+		#s16t#,
+		#s17#,
+		#s17t#,
+		#s18#,
+		#orderQty#,
+		#modelDest#,		
+		date_format(now(), '%Y%m%d'),
+		date_format(now(), '%Y%m%d'),
+		#inCharge#,
+		#note#)
+
+    </insert>
+    
+    
+    
+	<delete  id="pdOrderDAO.deleteOrderDetail" parameterClass="orderVO"> 
+		DELETE FROM PD_ORDERDETAIL where UNIKEY = #unikey# 
+	</delete>
+	
+	<delete  id="pdOrderDAO.deleteOrderDetail_mirror" parameterClass="orderVO"> 
+		DELETE FROM PD_ORDERDETAIL_MIRROR where UNIKEY = #unikey# 
+	</delete>
+	    
+	<delete  id="pdOrderDAO.deleteOrderList" parameterClass="orderVO"> 
+		DELETE FROM PD_ORDERLIST WHERE UNIKEY = #unikey# and ORDER_CANCEL = '10'	
+	</delete>
+	
+ <!-- 현재 cutstate key로 해당 Roll 정보 리스트 select / TABLE : pd_rollstate   -->     
+    <select id="pdOrderDAO.selectRollInfoByKey" parameterClass="String" resultClass="orderVO">
+        <![CDATA[
+        	SELECT 
+        		roll_meter		rollMeter,
+        		roll_qty		rollQty
+        	FROM pd_rollstate
+        	WHERE cutstate_key = #cutKey#
+        ]]>
+    </select> 	
+    
+ <!-- 각각의 재단물 Roll 바코드를 생성하고 저장하는 프로세스 insert / TABLE : pd_rollbarcode   -->   
+    <insert id="pdOrderDAO.insertNewRollBarcode" parameterClass="orderVO">
+		<![CDATA[
+			INSERT INTO pd_rollbarcode(
+				CUTSTATE_KEY,
+				ROLL_BARCODE,
+				ROLL_METER,
+				CREATE_DATE,
+				IN_CHARGE
+			)
+			VALUE(
+				#cutstateKey#,
+				get_pdStateBarcode(#customer#, #stateCode#),
+				#rollMeter#,
+				date_format(now(), '%Y%m%d'),
+				#inCharge#
+			);
+		]]>
+	</insert>
+	
+ <!-- 오더 잔량 처분 처리 UPDATE PROCEDURE / PROCEDURE:  pdproc_updateOrderDisposeProc  -->     
+ 	<procedure id="pdOrderDAO.updateOrderDisposeProc" parameterClass="orderVO"> 
+ 		<![CDATA[
+ 			{CALL pdproc_updateOrderDisposeProc(#unikey#,#note#,#inCharge#,#rtn,javaType=java.lang.String,jdbcType=VARCHAR,mode=OUT#)}
+ 		]]>
+ 	</procedure>
+ 	
+ 	
+ 	<select id="pdOrderDAO.checkDeliveryCount" parameterClass="orderVO" resultClass="int">    
+		<![CDATA[
+			SELECT COUNT(*) FROM PD_DELIVERY WHERE UNIKEY = #unikey# 
+		]]>
+	</select>  	
+	
+    
+</sqlMap>
